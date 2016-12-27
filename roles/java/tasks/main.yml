@@ -1,0 +1,41 @@
+---
+# include: Debian.yml
+#  when: ansible_os_family == "Debian"
+
+- include: RedHat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Find path for new JAVA binary
+  shell: update-alternatives --query java | grep Alternative | grep openjdk | grep -m 1 -e 'java-\(1\.\)\{0,1\}{{java_version}}' | cut -f 2 -d " " 
+  register: java_bin_path
+  changed_when: false
+  when: java_register_alternative
+
+- name: Update alternatives to point to new JAVA installation
+  alternatives: name=java path="{{java_bin_path.stdout}}"
+  when: java_register_alternative
+
+- name: Find path for new JAVA home
+  shell: '{ find -L {{java_base_path}} -type f -path "{{java_base_path}}/java-1.{{java_version}}*openjdk*/jre/bin/java"; find -L {{java_base_path}} -type f -path "{{java_base_path}}/java-{{java_version}}*openjdk*/jre/bin/java"; } | head -n 1'
+  register: java_home_path
+  changed_when: false
+  when: java_register_env
+
+- name: make sure /etc/profile.d exists
+  file: path=/etc/profile.d  state=directory
+
+# name: export JAVA_HOME
+#  template:
+#    src:  ../templates/java_home.sh.j2
+#    dest: /etc/profile.d/java_home.sh
+#    mode: "a+x"
+
+- name: Set JAVA_HOME environment variable
+  become: yes
+  lineinfile: dest='/etc/profile' regexp='^#?\s*export JAVA_HOME=(.*)$' line='export JAVA_HOME=/usr/lib/jvm/java-1.8.0' state=present
+
+# shell: echo JAVA_HOME is $JAVA_HOME
+#  environment:
+#    JAVA_HOME: /usr/lib/jvm/java-1.8.0
+#  register: shellout
+# debug: var=shellout

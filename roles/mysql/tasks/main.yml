@@ -1,0 +1,16 @@
+---
+
+- name: Download MySQL rpm from a remote repo
+  yum:
+    name: http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+    state: present
+
+- name: Install MySQL comunity server
+  yum: 
+    name: mysql-community-server
+    state: present
+
+- name: Starting servise MySQL
+  service:
+    name: mysqld
+    state: started

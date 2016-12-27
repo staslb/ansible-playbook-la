@@ -1,0 +1,6 @@
+---
+- name: Install Wget
+  yum: name=wget state=latest
+
+- name: Install gzip  
+  yum: name=unzip state=latest

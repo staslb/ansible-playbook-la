@@ -1,0 +1,19 @@
+---
+
+- name: Download NodeJS 7.0
+  get_url:
+    url: http://nodejs.org/dist/v7.0.0/node-v7.0.0-linux-x64.tar.gz
+    dest: /home/admin/node-v7.0.0-linux-x64.tar.gz
+  
+- name: Stat tar_gz file
+  stat:
+    path: "/home/admin/node-v7.0.0-linux-x64.tar.gz"
+  register: st
+
+- name: Unpack files
+  unarchive:
+    extra_opts: ['--strip-components=1', '--show-stored-names']
+    src: /home/admin/node-v7.0.0-linux-x64.tar.gz
+    dest: /usr/local/
+    remote_src: yes
+  when: st.stat.checksum|default('None') != checksum
